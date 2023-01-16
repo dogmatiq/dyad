@@ -217,8 +217,20 @@ var _ = Describe("func Clone()", func() {
 				src := make(chan int, 1)
 				Clone(src)
 			}).To(PanicWith(MatchError(
-				"cannot clone type: chan int",
+				"cannot clone value (chan int), try the dyad.WithChannelStrategy() option",
 			)))
+		})
+
+		When("using the ShareChannel strategy", func() {
+			It("shares the channel with the original value", func() {
+				src := make(chan int, 1)
+				dst := Clone(
+					src,
+					WithChannelStrategy(ShareChannel),
+				)
+
+				Expect(src).To(BeIdenticalTo(dst))
+			})
 		})
 	})
 

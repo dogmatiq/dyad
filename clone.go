@@ -24,6 +24,7 @@ func Clone[T any](src T, options ...Option) (dst T) {
 type Option func(*cloneOptions)
 
 type cloneOptions struct {
+	channelStrategy ChannelStrategy
 }
 
 func clone[T any](src T, options []Option) (dst T, err error) {
@@ -170,8 +171,15 @@ func cloneStructInto(src, dst reflect.Value, opts cloneOptions) error {
 }
 
 func cloneChannelInto(src, dst reflect.Value, opts cloneOptions) error {
-	return fmt.Errorf(
-		"cannot clone type: %s",
-		src.Type(),
-	)
+	switch opts.channelStrategy {
+	case ShareChannel:
+		dst.Set(src)
+	default:
+		return fmt.Errorf(
+			"cannot clone value (%s), try the dyad.WithChannelStrategy() option",
+			src.Type(),
+		)
+	}
+
+	return nil
 }
