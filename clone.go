@@ -8,68 +8,95 @@ import (
 
 // Clone returns a deep copy of src.
 func Clone[T any](src T, options ...Option) (dst T) {
-	clone(
-		reflect.ValueOf(src),
-		reflect.ValueOf(&dst).Elem(),
-	)
+	dst, err := clone(src, options)
+	if err != nil {
+		panic(err)
+	}
 
 	return dst
 }
 
 // An Option changes the behavior of a clone operation.
-type Option interface {
-	future()
+//
+// The signature of this function is not part of the public API and may change
+// at any time without warning.
+type Option func(*cloneOptions)
+
+type cloneOptions struct {
 }
 
-func clone(src, dst reflect.Value) {
+func clone[T any](src T, options []Option) (dst T, err error) {
+	var opts cloneOptions
+
+	for _, o := range options {
+		o(&opts)
+	}
+
+	err = cloneInto(
+		reflect.ValueOf(src),
+		reflect.ValueOf(&dst).Elem(),
+		opts,
+	)
+
+	return dst, err
+}
+
+func cloneInto(src, dst reflect.Value, opts cloneOptions) error {
 	if !src.IsValid() {
-		return
+		return nil
 	}
 
 	switch src.Kind() {
 	case reflect.Interface:
-		cloneInterface(src, dst)
+		return cloneInterfaceInto(src, dst, opts)
 	case reflect.Ptr:
-		clonePtr(src, dst)
+		return clonePtrInto(src, dst, opts)
 	case reflect.Slice:
-		cloneSlice(src, dst)
+		return cloneSliceInto(src, dst, opts)
 	case reflect.Map:
-		cloneMap(src, dst)
+		return cloneMapInto(src, dst, opts)
 	case reflect.Struct:
-		cloneStruct(src, dst)
+		return cloneStructInto(src, dst, opts)
+	case reflect.Chan:
+		return cloneChannelInto(src, dst, opts)
 	default:
 		dst.Set(src)
+		return nil
 	}
 }
 
-func cloneInterface(src, dst reflect.Value) {
+func cloneInterfaceInto(src, dst reflect.Value, opts cloneOptions) error {
 	if src.IsNil() {
-		return
+		return nil
 	}
 
 	srcElem := src.Elem()
 	dstElem := reflect.New(srcElem.Type()).Elem()
 
-	clone(srcElem, dstElem)
+	cloneInto(srcElem, dstElem, opts)
 	dst.Set(dstElem)
+
+	return nil
 }
 
-func clonePtr(src, dst reflect.Value) {
+func clonePtrInto(src, dst reflect.Value, opts cloneOptions) error {
 	if src.IsNil() {
-		return
+		return nil
 	}
 
 	srcElem := src.Elem()
 	dstPtr := reflect.New(srcElem.Type())
 	dstElem := dstPtr.Elem()
 
-	clone(srcElem, dstElem)
+	cloneInto(srcElem, dstElem, opts)
 	dst.Set(dstPtr)
+
+	return nil
 }
 
-func cloneSlice(src, dst reflect.Value) {
+func cloneSliceInto(src, dst reflect.Value, opts cloneOptions) error {
 	if src.IsNil() {
-		return
+		return nil
 	}
 
 	size := src.Len()
@@ -83,16 +110,19 @@ func cloneSlice(src, dst reflect.Value) {
 	)
 
 	for i := 0; i < size; i++ {
-		clone(
+		cloneInto(
 			src.Index(i),
 			dst.Index(i),
+			opts,
 		)
 	}
+
+	return nil
 }
 
-func cloneMap(src, dst reflect.Value) {
+func cloneMapInto(src, dst reflect.Value, opts cloneOptions) error {
 	if src.IsNil() {
-		return
+		return nil
 	}
 
 	mapType := src.Type()
@@ -108,14 +138,16 @@ func cloneMap(src, dst reflect.Value) {
 		dstKey := reflect.New(keyType).Elem()
 		dstElem := reflect.New(elemType).Elem()
 
-		clone(srcKey, dstKey)
-		clone(srcElem, dstElem)
+		cloneInto(srcKey, dstKey, opts)
+		cloneInto(srcElem, dstElem, opts)
 
 		dst.SetMapIndex(dstKey, dstElem)
 	}
+
+	return nil
 }
 
-func cloneStruct(src, dst reflect.Value) {
+func cloneStructInto(src, dst reflect.Value, opts cloneOptions) error {
 	size := src.NumField()
 	srcType := src.Type()
 
@@ -130,6 +162,13 @@ func cloneStruct(src, dst reflect.Value) {
 			dstField = unsafereflect.MakeMutable(dstField)
 		}
 
-		clone(srcField, dstField)
+		cloneInto(srcField, dstField, opts)
 	}
+
+	return nil
+}
+
+func cloneChannelInto(src, dst reflect.Value, opts cloneOptions) error {
+	dst.Set(src)
+	return nil
 }
