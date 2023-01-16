@@ -1,1 +1,2 @@
-package GITHUB_REPO_NAME
+// Package dyad makes deep copies of arbitrary values.
+package dyad
