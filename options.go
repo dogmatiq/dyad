@@ -41,7 +41,7 @@ const (
 
 	// CloneUnexportedFields causes Clone() to clone unexported struct fields
 	// just as it would any other value.
-	CloneUnexportedFields UnexportedFieldStrategy = iota
+	CloneUnexportedFields
 )
 
 // WithUnexportedFieldStrategy is an option that controls how Clone() behaves
