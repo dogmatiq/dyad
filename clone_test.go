@@ -1,6 +1,8 @@
 package dyad_test
 
 import (
+	"time"
+
 	. "github.com/dogmatiq/dyad"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -26,6 +28,15 @@ var _ = Describe("func Clone()", func() {
 
 			Expect(dst).To(BeNil())
 		})
+
+		It("panics if the encapsulated value cannot be cloned", func() {
+			Expect(func() {
+				src := any(time.Now())
+				Clone(src)
+			}).To(PanicWith(MatchError(
+				"cannot clone time.Time.wall, try the dyad.WithUnexportedFieldStrategy() option",
+			)))
+		})
 	})
 
 	When("the source value is a pointer", func() {
@@ -46,6 +57,15 @@ var _ = Describe("func Clone()", func() {
 			dst := Clone(src)
 
 			Expect(dst).To(BeNil())
+		})
+
+		It("panics if the pointer-to-value cannot be cloned", func() {
+			Expect(func() {
+				src := time.Now()
+				Clone(&src)
+			}).To(PanicWith(MatchError(
+				"cannot clone time.Time.wall, try the dyad.WithUnexportedFieldStrategy() option",
+			)))
 		})
 	})
 
@@ -77,6 +97,15 @@ var _ = Describe("func Clone()", func() {
 			dst := Clone(src)
 
 			Expect(dst).To(BeNil())
+		})
+
+		It("panics if an element cannot be cloned", func() {
+			Expect(func() {
+				src := []time.Time{time.Now()}
+				Clone(src)
+			}).To(PanicWith(MatchError(
+				"cannot clone time.Time.wall, try the dyad.WithUnexportedFieldStrategy() option",
+			)))
 		})
 	})
 
@@ -126,6 +155,24 @@ var _ = Describe("func Clone()", func() {
 			dst := Clone(src)
 
 			Expect(dst).To(BeNil())
+		})
+
+		It("panics if a key cannot be cloned", func() {
+			Expect(func() {
+				src := map[time.Time]int{time.Now(): 123}
+				Clone(src)
+			}).To(PanicWith(MatchError(
+				"cannot clone time.Time.wall, try the dyad.WithUnexportedFieldStrategy() option",
+			)))
+		})
+
+		It("panics if an element cannot be cloned", func() {
+			Expect(func() {
+				src := map[string]time.Time{"<key>": time.Now()}
+				Clone(src)
+			}).To(PanicWith(MatchError(
+				"cannot clone time.Time.wall, try the dyad.WithUnexportedFieldStrategy() option",
+			)))
 		})
 	})
 
@@ -199,6 +246,19 @@ var _ = Describe("func Clone()", func() {
 			Expect(dst).To(Equal(src))
 		})
 
+		It("panics if a field cannot be cloned", func() {
+			Expect(func() {
+				type Source struct {
+					Value time.Time
+				}
+
+				src := Source{time.Now()}
+				Clone(src)
+			}).To(PanicWith(MatchError(
+				"cannot clone time.Time.wall, try the dyad.WithUnexportedFieldStrategy() option",
+			)))
+		})
+
 		When("the struct contains unexported fields", func() {
 			It("panics", func() {
 				Expect(func() {
@@ -246,7 +306,6 @@ var _ = Describe("func Clone()", func() {
 					Expect(dst).To(Equal(src))
 				})
 			})
-
 		})
 	})
 

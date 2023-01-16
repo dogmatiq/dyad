@@ -36,7 +36,7 @@ func clone[T any](src T, options []Option) (dst T, err error) {
 	}
 
 	err = cloneInto(
-		reflect.ValueOf(src),
+		reflect.ValueOf(&src).Elem(),
 		reflect.ValueOf(&dst).Elem(),
 		opts,
 	)
@@ -76,7 +76,10 @@ func cloneInterfaceInto(src, dst reflect.Value, opts cloneOptions) error {
 	srcElem := src.Elem()
 	dstElem := reflect.New(srcElem.Type()).Elem()
 
-	cloneInto(srcElem, dstElem, opts)
+	if err := cloneInto(srcElem, dstElem, opts); err != nil {
+		return err
+	}
+
 	dst.Set(dstElem)
 
 	return nil
@@ -91,7 +94,10 @@ func clonePtrInto(src, dst reflect.Value, opts cloneOptions) error {
 	dstPtr := reflect.New(srcElem.Type())
 	dstElem := dstPtr.Elem()
 
-	cloneInto(srcElem, dstElem, opts)
+	if err := cloneInto(srcElem, dstElem, opts); err != nil {
+		return err
+	}
+
 	dst.Set(dstPtr)
 
 	return nil
@@ -113,11 +119,13 @@ func cloneSliceInto(src, dst reflect.Value, opts cloneOptions) error {
 	)
 
 	for i := 0; i < size; i++ {
-		cloneInto(
+		if err := cloneInto(
 			src.Index(i),
 			dst.Index(i),
 			opts,
-		)
+		); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -138,11 +146,16 @@ func cloneMapInto(src, dst reflect.Value, opts cloneOptions) error {
 
 	for _, srcKey := range src.MapKeys() {
 		srcElem := src.MapIndex(srcKey)
-		dstKey := reflect.New(keyType).Elem()
-		dstElem := reflect.New(elemType).Elem()
 
-		cloneInto(srcKey, dstKey, opts)
-		cloneInto(srcElem, dstElem, opts)
+		dstKey := reflect.New(keyType).Elem()
+		if err := cloneInto(srcKey, dstKey, opts); err != nil {
+			return err
+		}
+
+		dstElem := reflect.New(elemType).Elem()
+		if err := cloneInto(srcElem, dstElem, opts); err != nil {
+			return err
+		}
 
 		dst.SetMapIndex(dstKey, dstElem)
 	}
@@ -174,7 +187,9 @@ func cloneStructInto(src, dst reflect.Value, opts cloneOptions) error {
 			}
 		}
 
-		cloneInto(srcField, dstField, opts)
+		if err := cloneInto(srcField, dstField, opts); err != nil {
+			return err
+		}
 	}
 
 	return nil
