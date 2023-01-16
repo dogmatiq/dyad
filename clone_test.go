@@ -211,6 +211,17 @@ var _ = Describe("func Clone()", func() {
 		})
 	})
 
+	When("the source value is a channel", func() {
+		It("panics", func() {
+			Expect(func() {
+				src := make(chan int, 1)
+				Clone(src)
+			}).To(PanicWith(MatchError(
+				"cannot clone type: chan int",
+			)))
+		})
+	})
+
 	When("the source value is a basic type", func() {
 		It("returns the same value", func() {
 			Expect(Clone(true)).To(BeTrue())

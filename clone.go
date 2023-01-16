@@ -1,6 +1,7 @@
 package dyad
 
 import (
+	"fmt"
 	"reflect"
 
 	"github.com/dogmatiq/dyad/internal/unsafereflect"
@@ -169,6 +170,8 @@ func cloneStructInto(src, dst reflect.Value, opts cloneOptions) error {
 }
 
 func cloneChannelInto(src, dst reflect.Value, opts cloneOptions) error {
-	dst.Set(src)
-	return nil
+	return fmt.Errorf(
+		"cannot clone type: %s",
+		src.Type(),
+	)
 }
