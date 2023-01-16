@@ -14,6 +14,10 @@ const (
 	// ShareChannel causes Clone() to share the same channel between the
 	// original and cloned values.
 	ShareChannel
+
+	// IgnoreChannel causes Clone() to use a nil value when a channel is
+	// encountered.
+	IgnoreChannel
 )
 
 // WithChannelStrategy is an option that controls how Clone() behaves when it

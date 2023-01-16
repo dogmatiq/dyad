@@ -232,6 +232,18 @@ var _ = Describe("func Clone()", func() {
 				Expect(src).To(BeIdenticalTo(dst))
 			})
 		})
+
+		When("using the IgnoreChannel strategy", func() {
+			It("uses a nil value", func() {
+				src := make(chan int, 1)
+				dst := Clone(
+					src,
+					WithChannelStrategy(IgnoreChannel),
+				)
+
+				Expect(dst).To(BeNil())
+			})
+		})
 	})
 
 	When("the source value is a basic type", func() {

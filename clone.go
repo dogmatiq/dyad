@@ -174,6 +174,7 @@ func cloneChannelInto(src, dst reflect.Value, opts cloneOptions) error {
 	switch opts.channelStrategy {
 	case ShareChannel:
 		dst.Set(src)
+	case IgnoreChannel:
 	default:
 		return fmt.Errorf(
 			"cannot clone value (%s), try the dyad.WithChannelStrategy() option",
