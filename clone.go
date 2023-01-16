@@ -24,7 +24,8 @@ func Clone[T any](src T, options ...Option) (dst T) {
 type Option func(*cloneOptions)
 
 type cloneOptions struct {
-	channelStrategy ChannelStrategy
+	channelStrategy         ChannelStrategy
+	unexportedFieldStrategy UnexportedFieldStrategy
 }
 
 func clone[T any](src T, options []Option) (dst T, err error) {
@@ -160,8 +161,17 @@ func cloneStructInto(src, dst reflect.Value, opts cloneOptions) error {
 
 		// If the field is unexported
 		if field.PkgPath != "" {
-			srcField = unsafereflect.MakeMutable(srcField)
-			dstField = unsafereflect.MakeMutable(dstField)
+			switch opts.unexportedFieldStrategy {
+			case CloneUnexportedFields:
+				srcField = unsafereflect.MakeMutable(srcField)
+				dstField = unsafereflect.MakeMutable(dstField)
+			default:
+				return fmt.Errorf(
+					"cannot clone %s.%s, try the dyad.WithUnexportedFieldStrategy() option",
+					srcType,
+					field.Name,
+				)
+			}
 		}
 
 		cloneInto(srcField, dstField, opts)
@@ -172,12 +182,12 @@ func cloneStructInto(src, dst reflect.Value, opts cloneOptions) error {
 
 func cloneChannelInto(src, dst reflect.Value, opts cloneOptions) error {
 	switch opts.channelStrategy {
-	case ShareChannel:
+	case ShareChannels:
 		dst.Set(src)
-	case IgnoreChannel:
+	case IgnoreChannels:
 	default:
 		return fmt.Errorf(
-			"cannot clone value (%s), try the dyad.WithChannelStrategy() option",
+			"cannot clone %s, try the dyad.WithChannelStrategy() option",
 			src.Type(),
 		)
 	}

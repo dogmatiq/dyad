@@ -141,17 +141,6 @@ var _ = Describe("func Clone()", func() {
 			Expect(dst).To(Equal(src))
 		})
 
-		It("copies unexported fields", func() {
-			type Source struct {
-				value string
-			}
-
-			src := Source{"<value>"}
-			dst := Clone(src)
-
-			Expect(dst).To(Equal(src))
-		})
-
 		It("copies embedded fields", func() {
 			type Embedded struct {
 				Value string
@@ -209,6 +198,56 @@ var _ = Describe("func Clone()", func() {
 
 			Expect(dst).To(Equal(src))
 		})
+
+		When("the struct contains unexported fields", func() {
+			It("panics", func() {
+				Expect(func() {
+					type Source struct {
+						value string
+					}
+
+					src := Source{"<value>"}
+					Clone(src)
+				}).To(PanicWith(MatchError(
+					"cannot clone dyad_test.Source.value, try the dyad.WithUnexportedFieldStrategy() option",
+				)))
+			})
+
+			When("using the PanicOnUnexportedField strategy explicitly", func() {
+				It("panics", func() {
+					Expect(func() {
+						type Source struct {
+							value string
+						}
+
+						src := Source{"<value>"}
+						Clone(
+							src,
+							WithUnexportedFieldStrategy(PanicOnUnexportedField),
+						)
+					}).To(PanicWith(MatchError(
+						"cannot clone dyad_test.Source.value, try the dyad.WithUnexportedFieldStrategy() option",
+					)))
+				})
+			})
+
+			When("using the CloneUnexportedField strategy", func() {
+				It("copies unexported fields", func() {
+					type Source struct {
+						value string
+					}
+
+					src := Source{"<value>"}
+					dst := Clone(
+						src,
+						WithUnexportedFieldStrategy(CloneUnexportedFields),
+					)
+
+					Expect(dst).To(Equal(src))
+				})
+			})
+
+		})
 	})
 
 	When("the source value is a channel", func() {
@@ -217,8 +256,22 @@ var _ = Describe("func Clone()", func() {
 				src := make(chan int, 1)
 				Clone(src)
 			}).To(PanicWith(MatchError(
-				"cannot clone value (chan int), try the dyad.WithChannelStrategy() option",
+				"cannot clone chan int, try the dyad.WithChannelStrategy() option",
 			)))
+		})
+
+		When("using the PanicOnChannel strategy explicitly", func() {
+			It("panics", func() {
+				Expect(func() {
+					src := make(chan int, 1)
+					Clone(
+						src,
+						WithChannelStrategy(PanicOnChannel),
+					)
+				}).To(PanicWith(MatchError(
+					"cannot clone chan int, try the dyad.WithChannelStrategy() option",
+				)))
+			})
 		})
 
 		When("using the ShareChannel strategy", func() {
@@ -226,7 +279,7 @@ var _ = Describe("func Clone()", func() {
 				src := make(chan int, 1)
 				dst := Clone(
 					src,
-					WithChannelStrategy(ShareChannel),
+					WithChannelStrategy(ShareChannels),
 				)
 
 				Expect(src).To(BeIdenticalTo(dst))
@@ -238,7 +291,7 @@ var _ = Describe("func Clone()", func() {
 				src := make(chan int, 1)
 				dst := Clone(
 					src,
-					WithChannelStrategy(IgnoreChannel),
+					WithChannelStrategy(IgnoreChannels),
 				)
 
 				Expect(dst).To(BeNil())
