@@ -291,7 +291,7 @@ var _ = Describe("func Clone()", func() {
 				})
 			})
 
-			When("using the CloneUnexportedField strategy", func() {
+			When("using the CloneUnexportedFields strategy", func() {
 				It("copies unexported fields", func() {
 					type Source struct {
 						value string
@@ -304,6 +304,23 @@ var _ = Describe("func Clone()", func() {
 					)
 
 					Expect(dst).To(Equal(src))
+				})
+			})
+
+			When("using the IgnoreUnexportedFields strategy", func() {
+				It("leaves unexported fields as their zero-value", func() {
+					type Source struct {
+						Exported   string
+						unexported string
+					}
+
+					src := Source{"<exported>", "<unexported>"}
+					dst := Clone(
+						src,
+						WithUnexportedFieldStrategy(IgnoreUnexportedFields),
+					)
+
+					Expect(dst).To(Equal(Source{"<exported>", ""}))
 				})
 			})
 		})

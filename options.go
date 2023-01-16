@@ -42,6 +42,10 @@ const (
 	// CloneUnexportedFields causes Clone() to clone unexported struct fields
 	// just as it would any other value.
 	CloneUnexportedFields
+
+	// IgnoreUnexportedFields causes Clone() to skip cloning of unexported
+	// struct fields, leaving them as their zero value.
+	IgnoreUnexportedFields
 )
 
 // WithUnexportedFieldStrategy is an option that controls how Clone() behaves

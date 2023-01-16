@@ -178,6 +178,8 @@ func cloneStructInto(src, dst reflect.Value, opts cloneOptions) error {
 			case CloneUnexportedFields:
 				srcField = unsafereflect.MakeMutable(srcField)
 				dstField = unsafereflect.MakeMutable(dstField)
+			case IgnoreUnexportedFields:
+				continue
 			default:
 				return fmt.Errorf(
 					"cannot clone %s.%s, try the dyad.WithUnexportedFieldStrategy() option",

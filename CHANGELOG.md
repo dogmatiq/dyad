@@ -12,6 +12,10 @@ The format is based on [Keep a Changelog], and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- Added `IgnoreUnexportedFields` strategy
+
 ### Fixed
 
 - Fixed issue where errors when cloning sub-values would not be propagated
