@@ -1,7 +1,6 @@
 package dyad
 
 import (
-	"fmt"
 	"reflect"
 	"time"
 
@@ -203,7 +202,7 @@ func cloneStructInto(
 			case IgnoreUnexportedFields:
 				continue
 			default:
-				return fmt.Errorf(
+				return ctx.Errorf(
 					"cannot clone %s.%s, try the dyad.WithUnexportedFieldStrategy() option",
 					srcType,
 					field.Name,
@@ -228,7 +227,7 @@ func cloneChannelInto(
 		dst.Set(src)
 	case IgnoreChannels:
 	default:
-		return fmt.Errorf(
+		return ctx.Errorf(
 			"cannot clone %s, try the dyad.WithChannelStrategy() option",
 			src.Type(),
 		)
