@@ -31,10 +31,14 @@ var _ = Describe("func Clone()", func() {
 
 		It("panics if the encapsulated value cannot be cloned", func() {
 			Expect(func() {
-				src := any(time.Now())
+				type Source struct {
+					unexported string
+				}
+
+				src := any(Source{})
 				Clone(src)
 			}).To(PanicWith(MatchError(
-				"cannot clone time.Time.wall, try the dyad.WithUnexportedFieldStrategy() option",
+				"cannot clone dyad_test.Source.unexported, try the dyad.WithUnexportedFieldStrategy() option",
 			)))
 		})
 	})
@@ -61,10 +65,13 @@ var _ = Describe("func Clone()", func() {
 
 		It("panics if the pointer-to-value cannot be cloned", func() {
 			Expect(func() {
-				src := time.Now()
-				Clone(&src)
+				type Source struct {
+					unexported string
+				}
+				src := &Source{}
+				Clone(src)
 			}).To(PanicWith(MatchError(
-				"cannot clone time.Time.wall, try the dyad.WithUnexportedFieldStrategy() option",
+				"cannot clone dyad_test.Source.unexported, try the dyad.WithUnexportedFieldStrategy() option",
 			)))
 		})
 	})
@@ -101,10 +108,14 @@ var _ = Describe("func Clone()", func() {
 
 		It("panics if an element cannot be cloned", func() {
 			Expect(func() {
-				src := []time.Time{time.Now()}
+				type Elem struct {
+					unexported string
+				}
+
+				src := []Elem{{}}
 				Clone(src)
 			}).To(PanicWith(MatchError(
-				"cannot clone time.Time.wall, try the dyad.WithUnexportedFieldStrategy() option",
+				"cannot clone dyad_test.Elem.unexported, try the dyad.WithUnexportedFieldStrategy() option",
 			)))
 		})
 	})
@@ -159,19 +170,27 @@ var _ = Describe("func Clone()", func() {
 
 		It("panics if a key cannot be cloned", func() {
 			Expect(func() {
-				src := map[time.Time]int{time.Now(): 123}
+				type Key struct {
+					unexported string
+				}
+
+				src := map[Key]int{{}: 123}
 				Clone(src)
 			}).To(PanicWith(MatchError(
-				"cannot clone time.Time.wall, try the dyad.WithUnexportedFieldStrategy() option",
+				"cannot clone dyad_test.Key.unexported, try the dyad.WithUnexportedFieldStrategy() option",
 			)))
 		})
 
 		It("panics if an element cannot be cloned", func() {
 			Expect(func() {
-				src := map[string]time.Time{"<key>": time.Now()}
+				type Elem struct {
+					unexported string
+				}
+
+				src := map[string]Elem{"<key>": {}}
 				Clone(src)
 			}).To(PanicWith(MatchError(
-				"cannot clone time.Time.wall, try the dyad.WithUnexportedFieldStrategy() option",
+				"cannot clone dyad_test.Elem.unexported, try the dyad.WithUnexportedFieldStrategy() option",
 			)))
 		})
 	})
@@ -248,14 +267,18 @@ var _ = Describe("func Clone()", func() {
 
 		It("panics if a field cannot be cloned", func() {
 			Expect(func() {
-				type Source struct {
-					Value time.Time
+				type Field struct {
+					unexported string
 				}
 
-				src := Source{time.Now()}
+				type Source struct {
+					Value Field
+				}
+
+				src := Source{}
 				Clone(src)
 			}).To(PanicWith(MatchError(
-				"cannot clone time.Time.wall, try the dyad.WithUnexportedFieldStrategy() option",
+				"cannot clone dyad_test.Field.unexported, try the dyad.WithUnexportedFieldStrategy() option",
 			)))
 		})
 
@@ -400,6 +423,16 @@ var _ = Describe("func Clone()", func() {
 
 			Expect(Clone(complex64(123))).To(Equal(complex64(123)))
 			Expect(Clone(complex128(123))).To(Equal(complex128(123)))
+		})
+	})
+
+	When("the source value is a time.Time", func() {
+		It("does not clone the location", func() {
+			src := time.Now()
+			dst := Clone(src)
+
+			Expect(dst).To(Equal(src))
+			Expect(dst.Location()).To(BeIdenticalTo(src.Location()))
 		})
 	})
 })

@@ -3,6 +3,7 @@ package dyad
 import (
 	"fmt"
 	"reflect"
+	"time"
 
 	"github.com/dogmatiq/dyad/internal/unsafereflect"
 )
@@ -44,8 +45,22 @@ func clone[T any](src T, options []Option) (dst T, err error) {
 	return dst, err
 }
 
+func typeOf[T any]() reflect.Type {
+	return reflect.TypeOf((*T)(nil)).Elem()
+}
+
+var (
+	timeType = typeOf[time.Time]()
+)
+
 func cloneInto(src, dst reflect.Value, opts cloneOptions) error {
 	if !src.IsValid() {
+		return nil
+	}
+
+	switch src.Type() {
+	case timeType:
+		dst.Set(src)
 		return nil
 	}
 
