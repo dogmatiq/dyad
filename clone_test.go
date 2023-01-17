@@ -38,7 +38,7 @@ var _ = Describe("func Clone()", func() {
 				src := any(Source{})
 				Clone(src)
 			}).To(PanicWith(MatchError(
-				"cannot clone dyad_test.Source.unexported, try the dyad.WithUnexportedFieldStrategy() option",
+				"any(dyad_test.Source): struct cannot be cloned due to unexported field (dyad_test.Source.unexported), try the dyad.WithUnexportedFieldStrategy() option",
 			)))
 		})
 	})
@@ -71,7 +71,7 @@ var _ = Describe("func Clone()", func() {
 				src := &Source{}
 				Clone(src)
 			}).To(PanicWith(MatchError(
-				"cannot clone dyad_test.Source.unexported, try the dyad.WithUnexportedFieldStrategy() option",
+				"*dyad_test.Source: struct cannot be cloned due to unexported field (dyad_test.Source.unexported), try the dyad.WithUnexportedFieldStrategy() option",
 			)))
 		})
 	})
@@ -115,7 +115,7 @@ var _ = Describe("func Clone()", func() {
 				src := []Elem{{}}
 				Clone(src)
 			}).To(PanicWith(MatchError(
-				"cannot clone dyad_test.Elem.unexported, try the dyad.WithUnexportedFieldStrategy() option",
+				"[]dyad_test.Elem[0]: struct cannot be cloned due to unexported field (dyad_test.Elem.unexported), try the dyad.WithUnexportedFieldStrategy() option",
 			)))
 		})
 	})
@@ -177,7 +177,7 @@ var _ = Describe("func Clone()", func() {
 				src := map[Key]int{{}: 123}
 				Clone(src)
 			}).To(PanicWith(MatchError(
-				"cannot clone dyad_test.Key.unexported, try the dyad.WithUnexportedFieldStrategy() option",
+				`map[dyad_test.Key]int[dyad_test.Key{unexported:""}]: struct cannot be cloned due to unexported field (dyad_test.Key.unexported), try the dyad.WithUnexportedFieldStrategy() option`,
 			)))
 		})
 
@@ -190,7 +190,7 @@ var _ = Describe("func Clone()", func() {
 				src := map[string]Elem{"<key>": {}}
 				Clone(src)
 			}).To(PanicWith(MatchError(
-				"cannot clone dyad_test.Elem.unexported, try the dyad.WithUnexportedFieldStrategy() option",
+				`map[string]dyad_test.Elem["<key>"]: struct cannot be cloned due to unexported field (dyad_test.Elem.unexported), try the dyad.WithUnexportedFieldStrategy() option`,
 			)))
 		})
 	})
@@ -278,7 +278,7 @@ var _ = Describe("func Clone()", func() {
 				src := Source{}
 				Clone(src)
 			}).To(PanicWith(MatchError(
-				"cannot clone dyad_test.Field.unexported, try the dyad.WithUnexportedFieldStrategy() option",
+				"dyad_test.Source.Value: struct cannot be cloned due to unexported field (dyad_test.Field.unexported), try the dyad.WithUnexportedFieldStrategy() option",
 			)))
 		})
 
@@ -286,13 +286,13 @@ var _ = Describe("func Clone()", func() {
 			It("panics", func() {
 				Expect(func() {
 					type Source struct {
-						value string
+						unexported string
 					}
 
 					src := Source{"<value>"}
 					Clone(src)
 				}).To(PanicWith(MatchError(
-					"cannot clone dyad_test.Source.value, try the dyad.WithUnexportedFieldStrategy() option",
+					"dyad_test.Source: struct cannot be cloned due to unexported field (dyad_test.Source.unexported), try the dyad.WithUnexportedFieldStrategy() option",
 				)))
 			})
 
@@ -300,7 +300,7 @@ var _ = Describe("func Clone()", func() {
 				It("panics", func() {
 					Expect(func() {
 						type Source struct {
-							value string
+							unexported string
 						}
 
 						src := Source{"<value>"}
@@ -309,7 +309,7 @@ var _ = Describe("func Clone()", func() {
 							WithUnexportedFieldStrategy(PanicOnUnexportedField),
 						)
 					}).To(PanicWith(MatchError(
-						"cannot clone dyad_test.Source.value, try the dyad.WithUnexportedFieldStrategy() option",
+						"dyad_test.Source: struct cannot be cloned due to unexported field (dyad_test.Source.unexported), try the dyad.WithUnexportedFieldStrategy() option",
 					)))
 				})
 			})
@@ -317,7 +317,7 @@ var _ = Describe("func Clone()", func() {
 			When("using the CloneUnexportedFields strategy", func() {
 				It("copies unexported fields", func() {
 					type Source struct {
-						value string
+						unexported string
 					}
 
 					src := Source{"<value>"}
@@ -355,7 +355,7 @@ var _ = Describe("func Clone()", func() {
 				src := make(chan int, 1)
 				Clone(src)
 			}).To(PanicWith(MatchError(
-				"cannot clone chan int, try the dyad.WithChannelStrategy() option",
+				"chan int: channels cannot be cloned, try the dyad.WithChannelStrategy() option",
 			)))
 		})
 
@@ -368,7 +368,7 @@ var _ = Describe("func Clone()", func() {
 						WithChannelStrategy(PanicOnChannel),
 					)
 				}).To(PanicWith(MatchError(
-					"cannot clone chan int, try the dyad.WithChannelStrategy() option",
+					"chan int: channels cannot be cloned, try the dyad.WithChannelStrategy() option",
 				)))
 			})
 		})

@@ -24,10 +24,13 @@ func clone[T any](src T, options []Option) (dst T, err error) {
 		o(&ctx.options)
 	}
 
+	srcV := reflect.ValueOf(&src).Elem()
+	dstV := reflect.ValueOf(&dst).Elem()
+
 	err = cloneInto(
-		ctx,
-		reflect.ValueOf(&src).Elem(),
-		reflect.ValueOf(&dst).Elem(),
+		ctx.WithPath("%s", srcV.Type()),
+		srcV,
+		dstV,
 	)
 
 	return dst, err
@@ -85,7 +88,11 @@ func cloneInterfaceInto(
 	srcElem := src.Elem()
 	dstElem := reflect.New(srcElem.Type()).Elem()
 
-	if err := cloneInto(ctx, srcElem, dstElem); err != nil {
+	if err := cloneInto(
+		ctx.WithPath("(%s)", srcElem.Type()),
+		srcElem,
+		dstElem,
+	); err != nil {
 		return err
 	}
 
@@ -135,7 +142,7 @@ func cloneSliceInto(
 
 	for i := 0; i < size; i++ {
 		if err := cloneInto(
-			ctx,
+			ctx.WithPath("[%d]", i),
 			src.Index(i),
 			dst.Index(i),
 		); err != nil {
@@ -163,6 +170,7 @@ func cloneMapInto(
 	)
 
 	for _, srcKey := range src.MapKeys() {
+		ctx := ctx.WithPath("[%#v]", srcKey.Interface())
 		srcElem := src.MapIndex(srcKey)
 
 		dstKey := reflect.New(keyType).Elem()
@@ -202,15 +210,19 @@ func cloneStructInto(
 			case IgnoreUnexportedFields:
 				continue
 			default:
-				return ctx.Errorf(
-					"cannot clone %s.%s, try the dyad.WithUnexportedFieldStrategy() option",
+				return ctx.Error(
+					"struct cannot be cloned due to unexported field (%s.%s), try the dyad.WithUnexportedFieldStrategy() option",
 					srcType,
 					field.Name,
 				)
 			}
 		}
 
-		if err := cloneInto(ctx, srcField, dstField); err != nil {
+		if err := cloneInto(
+			ctx.WithPath(".%s", field.Name),
+			srcField,
+			dstField,
+		); err != nil {
 			return err
 		}
 	}
@@ -227,10 +239,7 @@ func cloneChannelInto(
 		dst.Set(src)
 	case IgnoreChannels:
 	default:
-		return ctx.Errorf(
-			"cannot clone %s, try the dyad.WithChannelStrategy() option",
-			src.Type(),
-		)
+		return ctx.Error("channels cannot be cloned, try the dyad.WithChannelStrategy() option")
 	}
 
 	return nil
