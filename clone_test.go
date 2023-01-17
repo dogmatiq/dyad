@@ -435,4 +435,18 @@ var _ = Describe("func Clone()", func() {
 			Expect(dst.Location()).To(BeIdenticalTo(src.Location()))
 		})
 	})
+
+	It("xxx", func() {
+		type Source struct {
+			time.Time
+		}
+
+		src := &Source{
+			Time: time.Now(),
+		}
+		dst := Clone(src)
+
+		Expect(dst).To(Equal(src))
+	})
+
 })

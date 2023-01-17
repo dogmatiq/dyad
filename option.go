@@ -1,5 +1,16 @@
 package dyad
 
+// An Option changes the behavior of a clone operation.
+//
+// The signature of this function is not part of the public API and may change
+// at any time without warning.
+type Option func(*cloneOptions)
+
+type cloneOptions struct {
+	channelStrategy         ChannelStrategy
+	unexportedFieldStrategy UnexportedFieldStrategy
+}
+
 // ChannelStrategy is an enumeration of strategies that can be used by Clone()
 // when a channel is encountered.
 type ChannelStrategy int
