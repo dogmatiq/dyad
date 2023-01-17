@@ -48,10 +48,6 @@ func cloneInto(
 	ctx cloneContext,
 	src, dst reflect.Value,
 ) error {
-	if !src.IsValid() {
-		return nil
-	}
-
 	switch src.Type() {
 	case timeType:
 		dst.Set(src)
