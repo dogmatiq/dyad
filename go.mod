@@ -1,7 +1,8 @@
 module github.com/dogmatiq/dyad
 
-go 1.22
-toolchain go1.22.5
+go 1.22.0
+
+toolchain go1.23.2
 
 require (
 	github.com/onsi/ginkgo/v2 v2.21.0
